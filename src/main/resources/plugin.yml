@@ -1,0 +1,7 @@
+name: RPGInventory
+main: com.neko.RPGInventory
+version: "1.0-SNAPSHOT"
+load: STARTUP
+prefix: RPGInventory
+author: Neko
+description: "This plugin transform the main inventory into a rpg inventory."
