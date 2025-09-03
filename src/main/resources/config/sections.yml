@@ -1,0 +1,77 @@
+1:
+  title: Step 1
+  steps:
+    1:
+      helmet: helmet1
+      plastron: plastron1
+      leggings: leggings1
+      boots: boots1
+
+    2:
+      helmet: helmet2
+      chestplate: chestplate2
+      leggings: leggings2
+      boots: boots2
+
+    3:
+      helmet: helmet3
+      chestplate: chestplate3
+      leggings: leggings3
+      boots: boots3
+
+    4:
+      helmet: helmet4
+      chestplate: chestplate4
+      leggings: leggings4
+      boots: boots4
+
+    5:
+      helmet: helmet5
+      chestplate: chestplate5
+      leggings: leggings5
+      boots: boots5
+
+    6:
+      helmet: helmet6
+      chestplate: chestplate6
+      leggings: leggings6
+      boots: boots6
+
+2:
+  title: Step 2
+  steps:
+    1:
+      helmet: helmet12
+      plastron: plastron12
+      leggings: leggings12
+      boots: boots12
+
+      2:
+        helmet: helmet22
+        chestplate: chestplate22
+        leggings: leggings22
+        boots: boots22
+
+      3:
+        helmet: helmet32
+        chestplate: chestplate32
+        leggings: leggings32
+        boots: boots32
+
+      4:
+        helmet: helmet42
+        chestplate: chestplate42
+        leggings: leggings42
+        boots: boots42
+
+      5:
+        helmet: helmet52
+        chestplate: chestplate52
+        leggings: leggings52
+        boots: boots52
+
+      6:
+        helmet: helmet62
+        chestplate: chestplate62
+        leggings: leggings62
+        boots: boots62
