@@ -1,77 +1,89 @@
 1:
-  title: Step 1
+  title: Zone 1
   steps:
     1:
+      header: header1
       helmet: helmet1
-      plastron: plastron1
+      chestplate: plastron1
       leggings: leggings1
       boots: boots1
 
     2:
+      header: header2
       helmet: helmet2
       chestplate: chestplate2
       leggings: leggings2
       boots: boots2
 
     3:
+      header: header3
       helmet: helmet3
       chestplate: chestplate3
       leggings: leggings3
       boots: boots3
 
     4:
+      header: header4
       helmet: helmet4
       chestplate: chestplate4
       leggings: leggings4
       boots: boots4
 
     5:
+      header: header5
       helmet: helmet5
       chestplate: chestplate5
       leggings: leggings5
       boots: boots5
 
     6:
+      header: header6
       helmet: helmet6
       chestplate: chestplate6
       leggings: leggings6
       boots: boots6
 
 2:
-  title: Step 2
+  title: Zone 2
   steps:
     1:
+      header: header12
       helmet: helmet12
-      plastron: plastron12
+      chestplate: plastron12
       leggings: leggings12
       boots: boots12
 
-      2:
-        helmet: helmet22
-        chestplate: chestplate22
-        leggings: leggings22
-        boots: boots22
+    2:
+      header: header22
+      helmet: helmet22
+      chestplate: chestplate22
+      leggings: leggings22
+      boots: boots22
 
-      3:
-        helmet: helmet32
-        chestplate: chestplate32
-        leggings: leggings32
-        boots: boots32
+    3:
+      header: header32
+      helmet: helmet32
+      chestplate: chestplate32
+      leggings: leggings32
+      boots: boots32
 
-      4:
-        helmet: helmet42
-        chestplate: chestplate42
-        leggings: leggings42
-        boots: boots42
+    4:
+      header: header42
+      helmet: helmet42
+      chestplate: chestplate42
+      leggings: leggings42
+      boots: boots42
 
-      5:
-        helmet: helmet52
-        chestplate: chestplate52
-        leggings: leggings52
-        boots: boots52
+    5:
+      header: header52
+      helmet: helmet52
+      chestplate: chestplate52
+      leggings: leggings52
+      boots: boots52
 
-      6:
-        helmet: helmet62
-        chestplate: chestplate62
-        leggings: leggings62
-        boots: boots62
+    6:
+      header: header62
+      helmet: helmet62
+      chestplate: chestplate62
+      leggings: leggings62
+      boots: boots62

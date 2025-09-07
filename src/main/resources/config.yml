@@ -11,3 +11,13 @@
 ###############
 
 enable: true
+
+#ItemsAdder item to display the menu button in inventories.
+menu_button: menuIcon
+left_arrow_button: leftArrowIcon
+equip_button: equipIcon
+right_arrow_button: rightArrowIcon
+unlocked_item_button: unlockedItemIcon
+locked_item_button: lockedItemIcon
+
+undefined_item: undefinedItem
