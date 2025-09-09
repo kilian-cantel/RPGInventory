@@ -28,3 +28,6 @@ replay_pid*
 
 #Build files
 target/*
+
+#Intellij
+.idea/*
