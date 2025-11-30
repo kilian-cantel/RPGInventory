@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.logging.Logger;
 
 public class Section {
 
@@ -113,12 +114,14 @@ public class Section {
         this.nextSection = nextSection;
     }
 
-    public static Section loadSection(YamlConfiguration config) {
-        return loadSection(1, config);
+    public static Section loadSection(YamlConfiguration config, Logger LOGGER) {
+        return loadSection(1, config, LOGGER);
     }
 
-    private static Section loadSection(int id, FileConfiguration config) {
+    private static Section loadSection(int id, FileConfiguration config, Logger LOGGER) {
         if (!config.contains(id + ".title")) return null;
+
+        LOGGER.info("Loading section " + id);
 
         return new Section(
                 Objects.requireNonNull(config.getString(id + ".title")),
@@ -129,7 +132,7 @@ public class Section {
                 Step.loadStep(id, 4, config),
                 Step.loadStep(id, 5, config),
                 Step.loadStep(id, 6, config),
-                loadSection(id + 1, config)
+                loadSection(id + 1, config, LOGGER)
         );
     }
 
@@ -173,7 +176,7 @@ public class Section {
     }
 
     @Nullable
-    public static Step getStep(String stepString) {
+    public static Step getStep(String stepString, RPGInventory plugin) {
         if (stepString == null) return null;
 
         String[] split = stepString.split(":");
@@ -181,7 +184,7 @@ public class Section {
         int id = Integer.parseInt(split[0]);
         int step = Integer.parseInt(split[1]);
 
-        Section section = RPGInventory.getSection(id);
+        Section section = plugin.getSection(id);
         if (section == null) return null;
 
         return section.getStep(step);

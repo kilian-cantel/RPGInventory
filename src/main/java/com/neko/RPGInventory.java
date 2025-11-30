@@ -1,5 +1,6 @@
 package com.neko;
 
+import com.neko.command.ReloadCommand;
 import com.neko.section.Section;
 import com.neko.section.Step;
 import dev.lone.itemsadder.api.CustomStack;
@@ -13,13 +14,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 public class RPGInventory extends JavaPlugin {
 
     private static RPGInventory instance;
 
-    private static Section section;
+    private Section section;
     private YamlConfiguration sectionConfiguration;
+    private final Logger LOGGER = getLogger();
 
     @Override
     public void onEnable() {
@@ -27,12 +30,16 @@ public class RPGInventory extends JavaPlugin {
         this.sectionConfiguration = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "config/sections.yml"));
         instance = this;
 
-        section = Section.loadSection(this.sectionConfiguration);
+        this.section = Section.loadSection(this.sectionConfiguration, LOGGER);
+
+        Objects.requireNonNull(this.getCommand("reload")).setExecutor(new ReloadCommand());
+
+        LOGGER.info("Plugin RPGInventory enabled!");
     }
 
     @Override
     public void onDisable() {
-
+        LOGGER.info("Plugin RPGInventory disabled!");
     }
 
     @NotNull
@@ -50,7 +57,7 @@ public class RPGInventory extends JavaPlugin {
     }
 
     @NotNull
-    public static Section getSection() {
+    public Section getSection() {
         return section;
     }
 
@@ -84,8 +91,12 @@ public class RPGInventory extends JavaPlugin {
         return CustomStack.getInstance(Config.LOCKEDITEMBUTTON.getString());
     }
 
+    private void setSection(Section section) {
+        this.section = section;
+    }
+
     @Nullable
-    public static Step getBestUnlockedStep(Player player) {
+    public Step getBestUnlockedStep(Player player) {
         Section section1 = section.cloneSection();
 
         while (Objects.equals(section1.getBestUnlocked(player), section1.getStep6())) {
@@ -98,13 +109,24 @@ public class RPGInventory extends JavaPlugin {
     }
 
     @Nullable
-    public static Section getSection(int id) {
+    public Section getSection(int id) {
         Section section1 = section.cloneSection();
         while (section1.getId() != id) {
             if (section1.getNextSection() == null) return null;
             section1 = section1.getNextSection();
         }
         return section1;
+    }
+
+    public Logger getLOGGER() {
+        return LOGGER;
+    }
+
+    public static void reload(Logger LOGGER, RPGInventory instance) {
+        instance.reloadConfig();
+        instance.sectionConfiguration = YamlConfiguration.loadConfiguration(new File(instance.getDataFolder(), "config/sections.yml"));
+        instance.setSection(Section.loadSection(instance.sectionConfiguration, LOGGER));
+        LOGGER.info("Plugin RPGInventory reloaded!");
     }
 }
 

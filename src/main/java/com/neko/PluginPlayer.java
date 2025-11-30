@@ -11,9 +11,9 @@ import org.jetbrains.annotations.Nullable;
 public class PluginPlayer {
 
     @Nullable
-    public static Step getStep(Player player) {
+    public static Step getStep(Player player, RPGInventory plugin) {
         PersistentDataContainer data = player.getPersistentDataContainer();
         String stepString = data.get(new NamespacedKey(RPGInventory.getInstance(), "step"), PersistentDataType.STRING);
-        return Section.getStep(stepString);
+        return Section.getStep(stepString, plugin);
     }
 }

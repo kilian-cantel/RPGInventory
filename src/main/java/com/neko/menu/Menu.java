@@ -37,7 +37,7 @@ public class Menu {
     }
 
     @NotNull
-    private static Inventory sectionToInventory(Section section, Player player) {
+    private static Inventory sectionToInventory(Section section, Player player, RPGInventory plugin) {
         Inventory inv = Bukkit.createInventory(player, 54, MiniMessage.miniMessage().deserialize(section.getTitle()));
 
         inv.setItem(9, RPGInventory.getMenuButton().getItemStack());
@@ -52,7 +52,7 @@ public class Menu {
         inv = Step.setStepToInventory(section.getStep5(), inv, 17, player);
         inv = Step.setStepToInventory(section.getStep6(), inv, 18, player);
 
-        Step playerStep = PluginPlayer.getStep(player);
+        Step playerStep = PluginPlayer.getStep(player, plugin);
 
         if (playerStep != null) {
             inv.setItem(20, playerStep.getHelmet().getItemStack());
