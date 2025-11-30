@@ -16,5 +16,4 @@ public class PluginPlayer {
         String stepString = data.get(new NamespacedKey(RPGInventory.getInstance(), "step"), PersistentDataType.STRING);
         return Section.getStep(stepString);
     }
-
 }

@@ -5,23 +5,29 @@ import com.neko.section.Step;
 import dev.lone.itemsadder.api.CustomStack;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.util.Objects;
 
 public class RPGInventory extends JavaPlugin {
 
     private static RPGInventory instance;
 
     private static Section section;
+    private YamlConfiguration sectionConfiguration;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        this.sectionConfiguration = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "config/sections.yml"));
         instance = this;
 
-        section = Section.loadSection();
+        section = Section.loadSection(this.sectionConfiguration);
     }
 
     @Override
@@ -32,6 +38,11 @@ public class RPGInventory extends JavaPlugin {
     @NotNull
     public static RPGInventory getInstance() {
         return instance;
+    }
+
+    @NotNull
+    public YamlConfiguration getSectionConfiguration() {
+        return this.sectionConfiguration;
     }
 
     public static void sendConsoleMessage(@NotNull Component msg) {
@@ -73,11 +84,11 @@ public class RPGInventory extends JavaPlugin {
         return CustomStack.getInstance(Config.LOCKEDITEMBUTTON.getString());
     }
 
-    @NotNull
+    @Nullable
     public static Step getBestUnlockedStep(Player player) {
         Section section1 = section.cloneSection();
 
-        while (section1.getBestUnlocked(player).equals(section1.getStep6())) {
+        while (Objects.equals(section1.getBestUnlocked(player), section1.getStep6())) {
             if (section1.getNextSection() == null) break;
 
             section1 = section1.getNextSection();

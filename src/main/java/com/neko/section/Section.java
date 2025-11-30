@@ -2,6 +2,7 @@ package com.neko.section;
 
 import com.neko.RPGInventory;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -112,8 +113,8 @@ public class Section {
         this.nextSection = nextSection;
     }
 
-    public static Section loadSection() {
-        return loadSection(1, RPGInventory.getInstance().getConfig());
+    public static Section loadSection(YamlConfiguration config) {
+        return loadSection(1, config);
     }
 
     private static Section loadSection(int id, FileConfiguration config) {

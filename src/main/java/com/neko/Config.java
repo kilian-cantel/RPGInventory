@@ -47,10 +47,10 @@ public enum Config {
     }
 
     public int getInt() {
-        return Integer.parseInt(getString());
+        return Integer.parseInt(this.getString());
     }
 
     public boolean getBoolean() {
-        return Boolean.parseBoolean(getString());
+        return Boolean.parseBoolean(this.getString());
     }
 }
