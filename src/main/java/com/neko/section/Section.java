@@ -1,9 +1,13 @@
 package com.neko.section;
 
+import com.neko.PluginPlayer;
 import com.neko.RPGInventory;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -188,5 +192,32 @@ public class Section {
         if (section == null) return null;
 
         return section.getStep(step);
+    }
+
+    @Nullable
+    public Inventory toInventory(Player player, RPGInventory plugin) {
+        Inventory inv = Bukkit.createInventory(player, 54, MiniMessage.miniMessage().deserialize(this.getTitle()));
+
+        inv.setItem(9, RPGInventory.getMenuButton().getItemStack());
+        inv.setItem(10, RPGInventory.getLeftArrowButton().getItemStack());
+        inv.setItem(11, RPGInventory.getEquipButton().getItemStack());
+        inv.setItem(12, RPGInventory.getRightArrowButton().getItemStack());
+
+        inv = this.getStep1().setStepToInventory(inv, 13, player);
+        inv = this.getStep2().setStepToInventory(inv, 14, player);
+        inv = this.getStep3().setStepToInventory(inv, 15, player);
+        inv = this.getStep4().setStepToInventory(inv, 16, player);
+        inv = this.getStep5().setStepToInventory(inv, 17, player);
+        inv = this.getStep6().setStepToInventory(inv, 18, player);
+
+        Step playerStep = PluginPlayer.getStep(player, plugin);
+
+        if (playerStep != null) {
+            inv.setItem(20, playerStep.getHelmet().getItemStack());
+            inv.setItem(29, playerStep.getChestplate().getItemStack());
+            inv.setItem(38, playerStep.getLeggings().getItemStack());
+            inv.setItem(47, playerStep.getBoots().getItemStack());
+        }
+        return inv;
     }
 }

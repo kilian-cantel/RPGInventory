@@ -12,6 +12,8 @@
 
 enable: true
 
+command: i
+
 #ItemsAdder item to display the menu button in inventories.
 menu_button: menuIcon
 left_arrow_button: leftArrowIcon

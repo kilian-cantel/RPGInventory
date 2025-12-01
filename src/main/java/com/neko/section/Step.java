@@ -115,30 +115,28 @@ public class Step {
     }
 
     @Nullable
-    public static Inventory setStepToInventory(Step step, Inventory inv, int pointer, Player player) {
-        if (step == null) return null;
-
+    public Inventory setStepToInventory(Inventory inv, int pointer, Player player) {
         ItemStack locked = RPGInventory.getLockedItemButton().getItemStack();
         ItemStack unlocked = RPGInventory.getUnlockedItemButton().getItemStack();
 
-        inv.setItem(pointer, step.getHeader().getItemStack());
+        inv.setItem(pointer, this.getHeader().getItemStack());
 
-        if (!player.hasPermission("rpginventory." + step.getHelmet().getNamespacedID()))
+        if (!player.hasPermission("rpginventory." + this.getHelmet().getNamespacedID()))
             inv.setItem(pointer + 9, locked);
         else
             inv.setItem(pointer + 9, unlocked);
 
-        if (!player.hasPermission("rpginventory." + step.getChestplate().getNamespacedID()))
+        if (!player.hasPermission("rpginventory." + this.getChestplate().getNamespacedID()))
             inv.setItem(pointer + 18, locked);
         else
             inv.setItem(pointer + 18, unlocked);
 
-        if (!player.hasPermission("rpginventory." + step.getLeggings().getNamespacedID()))
+        if (!player.hasPermission("rpginventory." + this.getLeggings().getNamespacedID()))
             inv.setItem(pointer + 27, locked);
         else
             inv.setItem(pointer + 27, unlocked);
 
-        if (!player.hasPermission("rpginventory." + step.getBoots().getNamespacedID()))
+        if (!player.hasPermission("rpginventory." + this.getBoots().getNamespacedID()))
             inv.setItem(pointer + 36, locked);
         else
             inv.setItem(pointer + 36, unlocked);
