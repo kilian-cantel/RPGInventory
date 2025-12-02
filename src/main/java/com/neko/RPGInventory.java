@@ -27,6 +27,12 @@ public class RPGInventory extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+
+        if (!Config.ENABLE.getBoolean()) {
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+
         this.sectionConfiguration = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "config/sections.yml"));
         instance = this;
 
