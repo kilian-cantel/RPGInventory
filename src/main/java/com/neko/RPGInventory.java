@@ -29,6 +29,7 @@ public class RPGInventory extends JavaPlugin {
         saveDefaultConfig();
 
         if (!Config.ENABLE.getBoolean()) {
+            LOGGER.warning("Plugin RPGInventory is disabled in config.yml! The plugin will not be loaded anymore!");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
@@ -56,10 +57,6 @@ public class RPGInventory extends JavaPlugin {
     @NotNull
     public YamlConfiguration getSectionConfiguration() {
         return this.sectionConfiguration;
-    }
-
-    public static void sendConsoleMessage(@NotNull Component msg) {
-        Bukkit.getConsoleSender().sendMessage(msg);
     }
 
     @NotNull
