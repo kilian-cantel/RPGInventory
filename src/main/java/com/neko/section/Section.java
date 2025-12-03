@@ -2,6 +2,8 @@ package com.neko.section;
 
 import com.neko.PluginPlayer;
 import com.neko.RPGInventory;
+import com.neko.menu.MenuHolder;
+import dev.lone.itemsadder.api.CustomStack;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -196,19 +198,42 @@ public class Section {
 
     @Nullable
     public Inventory toInventory(Player player, RPGInventory plugin) {
-        Inventory inv = Bukkit.createInventory(player, 54, MiniMessage.miniMessage().deserialize(this.getTitle()));
+        Inventory inv = plugin.getServer().createInventory(player, 54, MiniMessage.miniMessage().deserialize(this.getTitle()));
 
-        inv.setItem(9, RPGInventory.getMenuButton().getItemStack());
-        inv.setItem(10, RPGInventory.getLeftArrowButton().getItemStack());
-        inv.setItem(11, RPGInventory.getEquipButton().getItemStack());
-        inv.setItem(12, RPGInventory.getRightArrowButton().getItemStack());
+        inv.setItem(9, plugin.getMenuButton().getItemStack());
+        inv.setItem(10, plugin.getLeftArrowButton().getItemStack());
+        inv.setItem(11, plugin.getEquipButton().getItemStack());
+        inv.setItem(12, plugin.getRightArrowButton().getItemStack());
 
-        inv = this.getStep1().setStepToInventory(inv, 13, player);
-        inv = this.getStep2().setStepToInventory(inv, 14, player);
-        inv = this.getStep3().setStepToInventory(inv, 15, player);
-        inv = this.getStep4().setStepToInventory(inv, 16, player);
-        inv = this.getStep5().setStepToInventory(inv, 17, player);
-        inv = this.getStep6().setStepToInventory(inv, 18, player);
+        if (
+            this.step1 == null ||
+            this.step2 == null ||
+            this.step3 == null ||
+            this.step4 == null || this.step5 == null ||
+            this.step6 == null
+        ) return inv;
+
+        inv = this.step1.setStepToInventory(inv, 13, player, plugin);
+
+        if (inv == null) return null;
+
+        inv = this.step2.setStepToInventory(inv, 14, player, plugin);
+
+        if (inv == null) return null;
+
+        inv = this.step3.setStepToInventory(inv, 15, player, plugin);
+
+        if (inv == null) return null;
+
+        inv = this.step4.setStepToInventory(inv, 16, player, plugin);
+
+        if (inv == null) return null;
+
+        inv = this.step5.setStepToInventory(inv, 17, player, plugin);
+
+        if (inv == null) return null;
+
+        inv = this.step6.setStepToInventory(inv, 18, player, plugin);
 
         Step playerStep = PluginPlayer.getStep(player, plugin);
 
@@ -219,5 +244,16 @@ public class Section {
             inv.setItem(47, playerStep.getBoots().getItemStack());
         }
         return inv;
+    }
+
+    @Nullable
+    public Step getFromHeader(CustomStack header) {
+        if (this.step1.getHeader().equals(header)) return this.step1;
+        if (this.step2.getHeader().equals(header)) return this.step2;
+        if (this.step3.getHeader().equals(header)) return this.step3;
+        if (this.step4.getHeader().equals(header)) return this.step4;
+        if (this.step5.getHeader().equals(header)) return this.step5;
+        if (this.step6.getHeader().equals(header)) return this.step6;
+        return null;
     }
 }

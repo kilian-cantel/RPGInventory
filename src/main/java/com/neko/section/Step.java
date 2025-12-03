@@ -115,9 +115,9 @@ public class Step {
     }
 
     @Nullable
-    public Inventory setStepToInventory(Inventory inv, int pointer, Player player) {
-        ItemStack locked = RPGInventory.getLockedItemButton().getItemStack();
-        ItemStack unlocked = RPGInventory.getUnlockedItemButton().getItemStack();
+    public Inventory setStepToInventory(Inventory inv, int pointer, Player player, RPGInventory plugin) {
+        ItemStack locked = plugin.getLockedItemButton().getItemStack();
+        ItemStack unlocked = plugin.getUnlockedItemButton().getItemStack();
 
         inv.setItem(pointer, this.getHeader().getItemStack());
 
@@ -149,5 +149,12 @@ public class Step {
                 !player.hasPermission("rpginventory." + this.chestplate.getNamespacedID()) ||
                 !player.hasPermission("rpginventory." + this.leggings.getNamespacedID()) ||
                 !player.hasPermission("rpginventory." + this.boots.getNamespacedID());
+    }
+
+    public void equip(Player player) {
+        player.getInventory().setHelmet(this.helmet.getItemStack());
+        player.getInventory().setChestplate(this.chestplate.getItemStack());
+        player.getInventory().setLeggings(this.leggings.getItemStack());
+        player.getInventory().setBoots(this.boots.getItemStack());
     }
 }

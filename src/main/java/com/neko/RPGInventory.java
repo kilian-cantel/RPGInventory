@@ -1,13 +1,16 @@
 package com.neko;
 
 import com.neko.command.ReloadCommand;
+import com.neko.listener.inventoryClickEvent;
+import com.neko.menu.MenuHolder;
 import com.neko.section.Section;
 import com.neko.section.Step;
 import dev.lone.itemsadder.api.CustomStack;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,6 +43,7 @@ public class RPGInventory extends JavaPlugin {
         this.section = Section.loadSection(this.sectionConfiguration, LOGGER);
 
         Objects.requireNonNull(this.getCommand("reload")).setExecutor(new ReloadCommand());
+        this.getServer().getPluginManager().registerEvents(new inventoryClickEvent(this), this);
 
         LOGGER.info("Plugin RPGInventory enabled!");
     }
@@ -65,32 +69,57 @@ public class RPGInventory extends JavaPlugin {
     }
 
     @NotNull
-    public static CustomStack getMenuButton() {
+    public CustomStack getMenuButton() {
         return CustomStack.getInstance(Config.MENUBUTTON.getString());
     }
 
+    public void interactMenuButton(Player player) {
+        this.openInventory(player);
+    }
+
     @NotNull
-    public static CustomStack getLeftArrowButton() {
+    public CustomStack getLeftArrowButton() {
         return CustomStack.getInstance(Config.LEFTARROWBUTTON.getString());
     }
 
+    public void interactLeftArrowButton(Player player, Section section) {
+        Section leftSection = getLeftSection(section);
+
+        if (leftSection == null) return;
+
+        openInventory(player, leftSection);
+    }
+
     @NotNull
-    public static CustomStack getEquipButton() {
+    public CustomStack getEquipButton() {
         return CustomStack.getInstance(Config.EQUIPBUTTON.getString());
     }
 
-    @NotNull
-    public static CustomStack getRightArrowButton() {
-        return CustomStack.getInstance(Config.RIGHTARROWBUTTON.getString());
+    public void interactEquipButton(Player player, Section section, CustomStack stack) {
+        Step step = section.getFromHeader(stack);
+
+        if (step == null) return;
+        if (step.isFullUnlocked(player)) step.equip(player);
     }
 
     @NotNull
-    public static CustomStack getUnlockedItemButton() {
+    public CustomStack getRightArrowButton() {
+        return CustomStack.getInstance(Config.RIGHTARROWBUTTON.getString());
+    }
+
+    public void interactRightArrowButton(Player player, Section section) {
+        Section rightSection = section.getNextSection();
+        if (rightSection == null) return;
+        openInventory(player, rightSection);
+    }
+
+    @NotNull
+    public CustomStack getUnlockedItemButton() {
         return CustomStack.getInstance(Config.UNLOCKEDITEMBUTTON.getString());
     }
 
     @NotNull
-    public static CustomStack getLockedItemButton() {
+    public CustomStack getLockedItemButton() {
         return CustomStack.getInstance(Config.LOCKEDITEMBUTTON.getString());
     }
 
@@ -125,11 +154,45 @@ public class RPGInventory extends JavaPlugin {
         return LOGGER;
     }
 
-    public static void reload(Logger LOGGER, RPGInventory instance) {
-        instance.reloadConfig();
-        instance.sectionConfiguration = YamlConfiguration.loadConfiguration(new File(instance.getDataFolder(), "config/sections.yml"));
-        instance.setSection(Section.loadSection(instance.sectionConfiguration, LOGGER));
-        LOGGER.info("Plugin RPGInventory reloaded!");
+    public void reload() {
+        this.reloadConfig();
+        this.sectionConfiguration = YamlConfiguration.loadConfiguration(new File(this.getDataFolder(), "config/sections.yml"));
+        this.setSection(Section.loadSection(this.sectionConfiguration, LOGGER));
+        this.LOGGER.info("Plugin RPGInventory reloaded!");
+    }
+
+    public void openInventory(@NotNull Player player) {
+        this.openInventory(player, this.section);
+    }
+
+    public void openInventory(@NotNull Player player, Section section) {
+        Inventory menu = section.toInventory(player, this);
+        if (menu == null) return;
+
+        player.openInventory(menu);
+    }
+
+    @Nullable
+    public Section getLeftSection(Section section) {
+        Section prec = null;
+        Section curr = this.section;
+        if (this.section.getId() == section.getId()) return null;
+
+        while(curr.getId() != section.getId()) {
+            if (curr.getNextSection() == null) return null;
+            prec = curr;
+            curr = curr.getNextSection();
+        }
+        return prec;
+    }
+
+    public void interact(CustomStack stack, Player player, MenuHolder holder) {
+        if (stack.equals(getMenuButton())) interactMenuButton(player);
+
+        Section section = holder.getSection();
+        if (stack.equals(getLeftArrowButton())) interactLeftArrowButton(player, section);
+        if (stack.equals(getRightArrowButton())) interactRightArrowButton(player, section);
+        if (stack.equals(getEquipButton())) interactEquipButton(player, section, stack);
     }
 }
 

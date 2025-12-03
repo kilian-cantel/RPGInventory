@@ -14,7 +14,7 @@ public class ReloadCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String @NotNull [] args) {
         if (sender.hasPermission("rpginventory.reload")) {
-            RPGInventory.getInstance().reloadConfig();
+            RPGInventory.getInstance().reload();
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>Plugin RPGInventory reloaded!"));
             return true;
         }
