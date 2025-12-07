@@ -2,18 +2,33 @@ package com.neko;
 
 import com.neko.section.Section;
 import com.neko.section.Step;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
 
-public class PluginPlayer {
+public final class PluginPlayer {
+
+    //The data format is id_section:id_step
+    public static void setStep(HumanEntity player, RPGInventory plugin, Pair<Integer, Integer> step) {
+        PersistentDataContainer data = player.getPersistentDataContainer();
+        data.set(new NamespacedKey(plugin, "step"), PersistentDataType.STRING, step.getLeft() + ":" + step.getRight());
+    }
 
     @Nullable
-    public static Step getStep(Player player, RPGInventory plugin) {
+    public static Pair<Integer, Integer> getStepFromPersistentDataContainer(HumanEntity player, RPGInventory plugin) {
         PersistentDataContainer data = player.getPersistentDataContainer();
-        String stepString = data.get(new NamespacedKey(RPGInventory.getInstance(), "step"), PersistentDataType.STRING);
+        String stepString = data.get(new NamespacedKey(plugin, "step"), PersistentDataType.STRING);
         return Section.getStep(stepString, plugin);
+    }
+
+    @Nullable
+    public static Step getStep(RPGInventory plugin, Pair<Integer, Integer> step) {
+        Section section = plugin.getSection(step.getLeft());
+        if (section == null) return null;
+
+        return section.getStep(step.getRight());
     }
 }

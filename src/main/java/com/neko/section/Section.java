@@ -1,14 +1,13 @@
 package com.neko.section;
 
-import com.neko.PluginPlayer;
 import com.neko.RPGInventory;
 import com.neko.menu.MenuHolder;
 import dev.lone.itemsadder.api.CustomStack;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.Bukkit;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,46 +41,46 @@ public class Section {
 
     @NotNull
     public String getTitle() {
-        return title;
+        return this.title;
     }
 
     public int getId() {
-        return id;
+        return this.id;
     }
 
     @Nullable
     public Step getStep1() {
-        return step1;
+        return this.step1;
     }
 
     @Nullable
     public Step getStep2() {
-        return step2;
+        return this.step2;
     }
 
     @Nullable
     public Step getStep3() {
-        return step3;
+        return this.step3;
     }
 
     @Nullable
     public Step getStep4() {
-        return step4;
+        return this.step4;
     }
 
     @Nullable
     public Step getStep5() {
-        return step5;
+        return this.step5;
     }
 
     @Nullable
     public Step getStep6() {
-        return step6;
+        return this.step6;
     }
 
     @Nullable
     public Section getNextSection() {
-        return nextSection;
+        return this.nextSection;
     }
 
     public void setId(int id) {
@@ -143,14 +142,18 @@ public class Section {
     }
 
     @Nullable
-    public Step getBestUnlocked(Player player) {
-        if (!this.step1.isFullUnlocked(player)) return null;
-        if (!this.step2.isFullUnlocked(player)) return this.step1;
-        if (!this.step3.isFullUnlocked(player)) return this.step2;
-        if (!this.step4.isFullUnlocked(player)) return this.step3;
-        if (!this.step5.isFullUnlocked(player)) return this.step4;
-        if (!this.step6.isFullUnlocked(player)) return this.step5;
-        return this.step6;
+    public Step getBestUnlocked(HumanEntity player) {
+        return this.getStep(this.getBestUnlockedId(player));
+    }
+
+    public int getBestUnlockedId(HumanEntity player) {
+        if (!this.step1.isFullUnlocked(player)) return 0;
+        if (!this.step2.isFullUnlocked(player)) return 1;
+        if (!this.step3.isFullUnlocked(player)) return 2;
+        if (!this.step4.isFullUnlocked(player)) return 3;
+        if (!this.step5.isFullUnlocked(player)) return 4;
+        if (!this.step6.isFullUnlocked(player)) return 5;
+        return 6;
     }
 
     @NotNull
@@ -182,78 +185,131 @@ public class Section {
     }
 
     @Nullable
-    public static Step getStep(String stepString, RPGInventory plugin) {
+    public static Pair<Integer, Integer> getStep(String stepString, RPGInventory plugin) {
         if (stepString == null) return null;
 
         String[] split = stepString.split(":");
 
-        int id = Integer.parseInt(split[0]);
-        int step = Integer.parseInt(split[1]);
-
-        Section section = plugin.getSection(id);
-        if (section == null) return null;
-
-        return section.getStep(step);
+        return Pair.of(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
     }
 
     @Nullable
-    public Inventory toInventory(Player player, RPGInventory plugin) {
-        Inventory inv = plugin.getServer().createInventory(player, 54, MiniMessage.miniMessage().deserialize(this.getTitle()));
+    public Inventory toInventory(HumanEntity player, RPGInventory plugin, MenuHolder holder) {
+        Inventory inv = plugin.getServer().createInventory(holder, 54, MiniMessage.miniMessage().deserialize(this.getTitle()));
 
-        inv.setItem(9, plugin.getMenuButton().getItemStack());
-        inv.setItem(10, plugin.getLeftArrowButton().getItemStack());
-        inv.setItem(11, plugin.getEquipButton().getItemStack());
-        inv.setItem(12, plugin.getRightArrowButton().getItemStack());
+        inv.setItem(8, plugin.toItemStack(plugin.getMenuButton(), RPGInventory.CustomStackType.MENU));
+        inv.setItem(9, plugin.toItemStack(plugin.getLeftArrowButton(), RPGInventory.CustomStackType.LEFT_ARROW));
+        inv.setItem(10, plugin.toItemStack(plugin.getEquipButton(), RPGInventory.CustomStackType.EQUIP));
+        inv.setItem(11, plugin.toItemStack(plugin.getRightArrowButton(), RPGInventory.CustomStackType.RIGHT_ARROW));
 
-        if (
-            this.step1 == null ||
-            this.step2 == null ||
-            this.step3 == null ||
-            this.step4 == null || this.step5 == null ||
-            this.step6 == null
-        ) return inv;
+        if (this.step1 != null) {
+            inv = this.step1.setStepToInventory(inv, 12, player, plugin);
 
-        inv = this.step1.setStepToInventory(inv, 13, player, plugin);
+            if (inv == null) return null;
+        }
 
-        if (inv == null) return null;
+        if (this.step2 != null) {
+            inv = this.step2.setStepToInventory(inv, 13, player, plugin);
+            if (inv == null) return null;
+        }
 
-        inv = this.step2.setStepToInventory(inv, 14, player, plugin);
+        if (this.step3 != null) {
+            inv = this.step3.setStepToInventory(inv, 14, player, plugin);
 
-        if (inv == null) return null;
+            if (inv == null) return null;
+        }
 
-        inv = this.step3.setStepToInventory(inv, 15, player, plugin);
+        if (this.step4 != null) {
+            inv = this.step4.setStepToInventory(inv, 15, player, plugin);
 
-        if (inv == null) return null;
+            if (inv == null) return null;
+        }
 
-        inv = this.step4.setStepToInventory(inv, 16, player, plugin);
+        if (this.step5 != null) {
+            inv = this.step5.setStepToInventory(inv, 16, player, plugin);
 
-        if (inv == null) return null;
+            if (inv == null) return null;
+        }
 
-        inv = this.step5.setStepToInventory(inv, 17, player, plugin);
+        if (this.step6 != null) {
+            inv = this.step6.setStepToInventory(inv, 17, player, plugin);
 
-        if (inv == null) return null;
+            if (inv == null) return null;
+        }
 
-        inv = this.step6.setStepToInventory(inv, 18, player, plugin);
+        Step pointer = holder.getPointedStep();
 
-        Step playerStep = PluginPlayer.getStep(player, plugin);
-
-        if (playerStep != null) {
-            inv.setItem(20, playerStep.getHelmet().getItemStack());
-            inv.setItem(29, playerStep.getChestplate().getItemStack());
-            inv.setItem(38, playerStep.getLeggings().getItemStack());
-            inv.setItem(47, playerStep.getBoots().getItemStack());
+        if (pointer != null) {
+            inv.setItem(19, plugin.toItemStack(pointer.getHelmet(), RPGInventory.CustomStackType.HELMET));
+            inv.setItem(28, plugin.toItemStack(pointer.getChestplate(), RPGInventory.CustomStackType.CHESTPLATE));
+            inv.setItem(37, plugin.toItemStack(pointer.getLeggings(), RPGInventory.CustomStackType.LEGGINGS));
+            inv.setItem(46, plugin.toItemStack(pointer.getBoots(), RPGInventory.CustomStackType.BOOTS));
         }
         return inv;
     }
 
     @Nullable
     public Step getFromHeader(CustomStack header) {
-        if (this.step1.getHeader().equals(header)) return this.step1;
-        if (this.step2.getHeader().equals(header)) return this.step2;
-        if (this.step3.getHeader().equals(header)) return this.step3;
-        if (this.step4.getHeader().equals(header)) return this.step4;
-        if (this.step5.getHeader().equals(header)) return this.step5;
-        if (this.step6.getHeader().equals(header)) return this.step6;
+        if (this.step1.getHeader().getNamespacedID().equals(header.getNamespacedID())) return this.step1;
+        if (this.step2.getHeader().getNamespacedID().equals(header.getNamespacedID())) return this.step2;
+        if (this.step3.getHeader().getNamespacedID().equals(header.getNamespacedID())) return this.step3;
+        if (this.step4.getHeader().getNamespacedID().equals(header.getNamespacedID())) return this.step4;
+        if (this.step5.getHeader().getNamespacedID().equals(header.getNamespacedID())) return this.step5;
+        if (this.step6.getHeader().getNamespacedID().equals(header.getNamespacedID())) return this.step6;
         return null;
+    }
+
+    @Nullable
+    public Step getFromHelmet(CustomStack helmet) {
+        if (this.step1.getHelmet().getNamespacedID().equals(helmet.getNamespacedID())) return this.step1;
+        if (this.step2.getHelmet().getNamespacedID().equals(helmet.getNamespacedID())) return this.step2;
+        if (this.step3.getHelmet().getNamespacedID().equals(helmet.getNamespacedID())) return this.step3;
+        if (this.step4.getHelmet().getNamespacedID().equals(helmet.getNamespacedID())) return this.step4;
+        if (this.step5.getHelmet().getNamespacedID().equals(helmet.getNamespacedID())) return this.step5;
+        if (this.step6.getHelmet().getNamespacedID().equals(helmet.getNamespacedID())) return this.step6;
+        return null;
+    }
+
+    @Nullable
+    public Step getFromChestplate(CustomStack chestplate) {
+        if (this.step1.getChestplate().getNamespacedID().equals(chestplate.getNamespacedID())) return this.step1;
+        if (this.step2.getChestplate().getNamespacedID().equals(chestplate.getNamespacedID())) return this.step2;
+        if (this.step3.getChestplate().getNamespacedID().equals(chestplate.getNamespacedID())) return this.step3;
+        if (this.step4.getChestplate().getNamespacedID().equals(chestplate.getNamespacedID())) return this.step4;
+        if (this.step5.getChestplate().getNamespacedID().equals(chestplate.getNamespacedID())) return this.step5;
+        if (this.step6.getChestplate().getNamespacedID().equals(chestplate.getNamespacedID())) return this.step6;
+        return null;
+    }
+
+    @Nullable
+    public Step getFromLeggings(CustomStack leggings) {
+        if (this.step1.getLeggings().getNamespacedID().equals(leggings.getNamespacedID())) return this.step1;
+        if (this.step2.getLeggings().getNamespacedID().equals(leggings.getNamespacedID())) return this.step2;
+        if (this.step3.getLeggings().getNamespacedID().equals(leggings.getNamespacedID())) return this.step3;
+        if (this.step4.getLeggings().getNamespacedID().equals(leggings.getNamespacedID())) return this.step4;
+        if (this.step5.getLeggings().getNamespacedID().equals(leggings.getNamespacedID())) return this.step5;
+        if (this.step6.getLeggings().getNamespacedID().equals(leggings.getNamespacedID())) return this.step6;
+        return null;
+    }
+
+    @Nullable
+    public Step getFromBoots(CustomStack boots) {
+        if (this.step1.getBoots().getNamespacedID().equals(boots.getNamespacedID())) return this.step1;
+        if (this.step2.getBoots().getNamespacedID().equals(boots.getNamespacedID())) return this.step2;
+        if (this.step3.getBoots().getNamespacedID().equals(boots.getNamespacedID())) return this.step3;
+        if (this.step4.getBoots().getNamespacedID().equals(boots.getNamespacedID())) return this.step4;
+        if (this.step5.getBoots().getNamespacedID().equals(boots.getNamespacedID())) return this.step5;
+        if (this.step6.getBoots().getNamespacedID().equals(boots.getNamespacedID())) return this.step6;
+        return null;
+    }
+
+    public int getStepId(Step step) {
+        if (step.equals(this.step1)) return 1;
+        if (step.equals(this.step2)) return 2;
+        if (step.equals(this.step3)) return 3;
+        if (step.equals(this.step4)) return 4;
+        if (step.equals(this.step5)) return 5;
+        if (step.equals(this.step6)) return 6;
+        return 0;
     }
 }

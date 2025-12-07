@@ -1,12 +1,20 @@
 name: RPGInventory
 main: com.neko.RPGInventory
 version: "1.0-SNAPSHOT"
-load: STARTUP
+api-version: "1.21"
+load: POSTWORLD
 prefix: RPGInventory
 author: Neko
 description: "This plugin transform the main inventory into a rpg inventory."
+depend: [ItemsAdder]
 
 commands:
   reload:
     description: "Reload the plugin."
     permission: rpginventory.reload
+    permission-message: "You need to have the rpginventory.reload permission to use this command."
+
+  open:
+    description: "Open the rpg inventory."
+    permission: rpginventory.open
+    permission-message: "You need to have the rpginventory.open permission to use this command."

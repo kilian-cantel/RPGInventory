@@ -1,28 +1,31 @@
 package com.neko.command;
 
 import com.neko.RPGInventory;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class ReloadCommand implements TabExecutor {
+public class OpenCommand implements TabExecutor {
 
     private final RPGInventory plugin;
 
-    public ReloadCommand(RPGInventory plugin) {
+    public OpenCommand(RPGInventory plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String @NotNull [] args) {
-        plugin.reload();
-        sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>Plugin RPGInventory reloaded!"));
-        return true;
+        if (sender instanceof Player player) {
+            this.plugin.openInventory(player);
+            return true;
+        }
+
+        return false;
     }
 
     @Override

@@ -11,12 +11,11 @@ public enum Config {
     RIGHTARROWBUTTON("rightArrowIcon", "right_arrow_button"),
     UNLOCKEDITEMBUTTON("unlockedItemIcon", "unlocked_item_button"),
     LOCKEDITEMBUTTON("lockedItemIcon", "locked_item_button"),
-    UNDEFINEDITEM("undefinedItem", "undefined_item");
+    UNDEFINEDITEM("undefinedItem", "undefined_item"),
+    MENUCOMMAND("menuCommand", "menu_command");
 
     private final Object defaultValue;
     private final String path;
-
-    private static final FileConfiguration config = RPGInventory.getInstance().getConfig();
 
     Config(Object defaultValue, String path) {
         this.defaultValue = defaultValue;
@@ -31,7 +30,7 @@ public enum Config {
         return this.path;
     }
 
-    public Object get() {
+    public Object get(FileConfiguration config) {
         Object result = config.get(this.path);
 
         if (result == null) {
@@ -42,15 +41,15 @@ public enum Config {
         return result;
     }
 
-    public String getString() {
-        return String.valueOf(this.get());
+    public String getString(FileConfiguration config) {
+        return String.valueOf(this.get(config));
     }
 
-    public int getInt() {
-        return Integer.parseInt(this.getString());
+    public int getInt(FileConfiguration config) {
+        return Integer.parseInt(this.getString(config));
     }
 
-    public boolean getBoolean() {
-        return Boolean.parseBoolean(this.getString());
+    public boolean getBoolean(FileConfiguration config) {
+        return Boolean.parseBoolean(this.getString(config));
     }
 }

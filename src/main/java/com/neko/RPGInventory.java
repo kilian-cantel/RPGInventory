@@ -1,21 +1,27 @@
 package com.neko;
 
+import com.neko.command.OpenCommand;
 import com.neko.command.ReloadCommand;
-import com.neko.listener.inventoryClickEvent;
+import com.neko.listener.*;
 import com.neko.menu.MenuHolder;
 import com.neko.section.Section;
 import com.neko.section.Step;
+import com.neko.stack.*;
 import dev.lone.itemsadder.api.CustomStack;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -29,21 +35,29 @@ public class RPGInventory extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        instance = this;
         saveDefaultConfig();
 
-        if (!Config.ENABLE.getBoolean()) {
+        FileManager.createResourceFile(new File("sections.yml"), this);
+
+        if (!Config.ENABLE.getBoolean(this.getConfig())) {
             LOGGER.warning("Plugin RPGInventory is disabled in config.yml! The plugin will not be loaded anymore!");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
 
-        this.sectionConfiguration = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "config/sections.yml"));
-        instance = this;
+        this.sectionConfiguration = YamlConfiguration.loadConfiguration(new File(this.getDataFolder(), "sections.yml"));
 
         this.section = Section.loadSection(this.sectionConfiguration, LOGGER);
 
-        Objects.requireNonNull(this.getCommand("reload")).setExecutor(new ReloadCommand());
-        this.getServer().getPluginManager().registerEvents(new inventoryClickEvent(this), this);
+        Objects.requireNonNull(this.getCommand("reload")).setExecutor(new ReloadCommand(this));
+        Objects.requireNonNull(this.getCommand("open")).setExecutor(new OpenCommand(this));
+        this.getServer().getPluginManager().registerEvents(new InventoryClickEvent(this), this);
+        this.getServer().getPluginManager().registerEvents(new OnPlayerJoinEvent(this), this);
+        this.getServer().getPluginManager().registerEvents(new InteractPlayerEvent(), this);
+        this.getServer().getPluginManager().registerEvents(new OnPlayerDieEvent(), this);
+        this.getServer().getPluginManager().registerEvents(new PlayerSpawnEvent(this), this);
+        this.getServer().getPluginManager().registerEvents(new PlayerJoinEvent(this), this);
 
         LOGGER.info("Plugin RPGInventory enabled!");
     }
@@ -70,57 +84,32 @@ public class RPGInventory extends JavaPlugin {
 
     @NotNull
     public CustomStack getMenuButton() {
-        return CustomStack.getInstance(Config.MENUBUTTON.getString());
-    }
-
-    public void interactMenuButton(Player player) {
-        this.openInventory(player);
+        return CustomStack.getInstance(Config.MENUBUTTON.getString(this.getConfig()));
     }
 
     @NotNull
     public CustomStack getLeftArrowButton() {
-        return CustomStack.getInstance(Config.LEFTARROWBUTTON.getString());
-    }
-
-    public void interactLeftArrowButton(Player player, Section section) {
-        Section leftSection = getLeftSection(section);
-
-        if (leftSection == null) return;
-
-        openInventory(player, leftSection);
+        return CustomStack.getInstance(Config.LEFTARROWBUTTON.getString(this.getConfig()));
     }
 
     @NotNull
     public CustomStack getEquipButton() {
-        return CustomStack.getInstance(Config.EQUIPBUTTON.getString());
-    }
-
-    public void interactEquipButton(Player player, Section section, CustomStack stack) {
-        Step step = section.getFromHeader(stack);
-
-        if (step == null) return;
-        if (step.isFullUnlocked(player)) step.equip(player);
+        return CustomStack.getInstance(Config.EQUIPBUTTON.getString(this.getConfig()));
     }
 
     @NotNull
     public CustomStack getRightArrowButton() {
-        return CustomStack.getInstance(Config.RIGHTARROWBUTTON.getString());
-    }
-
-    public void interactRightArrowButton(Player player, Section section) {
-        Section rightSection = section.getNextSection();
-        if (rightSection == null) return;
-        openInventory(player, rightSection);
+        return CustomStack.getInstance(Config.RIGHTARROWBUTTON.getString(this.getConfig()));
     }
 
     @NotNull
     public CustomStack getUnlockedItemButton() {
-        return CustomStack.getInstance(Config.UNLOCKEDITEMBUTTON.getString());
+        return CustomStack.getInstance(Config.UNLOCKEDITEMBUTTON.getString(this.getConfig()));
     }
 
     @NotNull
     public CustomStack getLockedItemButton() {
-        return CustomStack.getInstance(Config.LOCKEDITEMBUTTON.getString());
+        return CustomStack.getInstance(Config.LOCKEDITEMBUTTON.getString(this.getConfig()));
     }
 
     private void setSection(Section section) {
@@ -129,15 +118,41 @@ public class RPGInventory extends JavaPlugin {
 
     @Nullable
     public Step getBestUnlockedStep(Player player) {
-        Section section1 = section.cloneSection();
+        return this.getBestUnlockedStep(player, this.getBestUnlockedStepPair(player));
+    }
+
+    @Nullable
+    public Step getBestUnlockedStep(Player player, Pair<Integer, Integer> sectionIdPair) {
+        if (sectionIdPair == null) return null;
+
+        Section section = this.getSection(sectionIdPair.getLeft());
+
+        if (section == null) return null;
+
+        return section.getStep(sectionIdPair.getRight());
+    }
+
+    @Nullable
+    public Pair<Integer, Integer> getBestUnlockedStepPair(Player player) {
+        Section section1 = this.section.cloneSection();
 
         while (Objects.equals(section1.getBestUnlocked(player), section1.getStep6())) {
-            if (section1.getNextSection() == null) break;
+            Section nextSection = section1.getNextSection();
+            if (nextSection == null) break;
 
-            section1 = section1.getNextSection();
+            if (nextSection.getBestUnlocked(player) == null) break;
+
+            section1 = nextSection;
         }
 
-        return section1.getBestUnlocked(player);
+        return Pair.of(section1.getId(), section1.getBestUnlockedId(player));
+    }
+
+    @Nullable
+    public Pair<Integer, Integer> getSectionIdPair(Section section, Step step) {
+        int stepId = section.getStepId(step);
+        if (stepId == 0) return null;
+        return Pair.of(section.getId(), stepId);
     }
 
     @Nullable
@@ -156,20 +171,21 @@ public class RPGInventory extends JavaPlugin {
 
     public void reload() {
         this.reloadConfig();
-        this.sectionConfiguration = YamlConfiguration.loadConfiguration(new File(this.getDataFolder(), "config/sections.yml"));
+        this.sectionConfiguration = YamlConfiguration.loadConfiguration(new File(this.getDataFolder(), "sections.yml"));
         this.setSection(Section.loadSection(this.sectionConfiguration, LOGGER));
         this.LOGGER.info("Plugin RPGInventory reloaded!");
     }
 
-    public void openInventory(@NotNull Player player) {
-        this.openInventory(player, this.section);
+    public void openInventory(@NotNull HumanEntity player) {
+        this.openInventory(player, this.section, this.section.getBestUnlocked(player));
     }
 
-    public void openInventory(@NotNull Player player, Section section) {
-        Inventory menu = section.toInventory(player, this);
-        if (menu == null) return;
+    public void openInventory(@NotNull HumanEntity player, Section section, Step pointedStep) {
+        MenuHolder menu = new MenuHolder(this, section, player, pointedStep);
 
-        player.openInventory(menu);
+        if (pointedStep == null) LOGGER.warning("Step is null!");
+
+        player.openInventory(menu.getInventory());
     }
 
     @Nullable
@@ -186,13 +202,68 @@ public class RPGInventory extends JavaPlugin {
         return prec;
     }
 
-    public void interact(CustomStack stack, Player player, MenuHolder holder) {
-        if (stack.equals(getMenuButton())) interactMenuButton(player);
+    public ItemStack toItemStack(CustomStack stack, CustomStackType type) {
+        ItemStack item = stack.getItemStack();
+        item.editPersistentDataContainer(pdc -> {
+           pdc.set(new NamespacedKey(this, "type"), PersistentDataType.STRING, type.name());
+           pdc.set(new NamespacedKey(this, "customstack"), PersistentDataType.STRING, stack.getNamespacedID());
+        });
+        return item;
+    }
 
-        Section section = holder.getSection();
-        if (stack.equals(getLeftArrowButton())) interactLeftArrowButton(player, section);
-        if (stack.equals(getRightArrowButton())) interactRightArrowButton(player, section);
-        if (stack.equals(getEquipButton())) interactEquipButton(player, section, stack);
+    public Pair<CustomStack, String> toCustomStack(ItemStack item) {
+        String data = item.getPersistentDataContainer().get(new NamespacedKey(this, "type"), PersistentDataType.STRING);
+        String id = item.getPersistentDataContainer().get(new NamespacedKey(this, "customstack"), PersistentDataType.STRING);
+
+        if (data == null || id == null) return null;
+
+        return Pair.of(CustomStack.getInstance(id), data);
+    }
+
+    public void equipBestUnlockedStep(Player player) {
+        this.equipStep(player, this.getBestUnlockedStepPair(player));
+    }
+
+    public void equipStep(HumanEntity player, @Nullable Pair<Integer, Integer> stepPair) {
+        if (stepPair == null) return;
+
+        Section section = this.getSection(stepPair.getLeft());
+        if (section == null) return;
+
+        Step step = section.getStep(stepPair.getRight());
+        if (step == null) return;
+
+        step.equip(player, this, section);
+    }
+
+    public enum CustomStackType {
+        MENU(MenuStack.class),
+        LEFT_ARROW(LeftArrowStack.class),
+        RIGHT_ARROW(RightArrowStack.class),
+        EQUIP(EquipStack.class),
+        HEADER(HeaderStack.class),
+        HELMET(HelmetStack.class),
+        CHESTPLATE(ChestplateStack.class),
+        LEGGINGS(LeggingsStack.class),
+        BOOTS(BootsStack.class);
+
+        private static final RPGInventory plugin = RPGInventory.getInstance();
+        private final Class<? extends PluginStack> stack;
+
+        CustomStackType(Class<? extends PluginStack> stack) {
+            this.stack = stack;
+        }
+
+        public Class<? extends PluginStack> getStack() {
+            return this.stack;
+        }
+
+        public void interact(MenuHolder holder, HumanEntity player, RPGInventory plugin, CustomStack clickedItem)
+                throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+
+            this.stack.getConstructor(MenuHolder.class, HumanEntity.class, RPGInventory.class, CustomStack.class)
+                    .newInstance(holder, player, plugin, clickedItem).interact();
+        }
     }
 }
 
