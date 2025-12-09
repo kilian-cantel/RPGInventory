@@ -3,7 +3,6 @@ package com.neko.listener;
 import com.neko.RPGInventory;
 import com.neko.menu.MenuHolder;
 import dev.lone.itemsadder.api.CustomStack;
-import dev.lone.itemsadder.api.FontImages.TexturedInventoryWrapper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -24,7 +23,12 @@ public class InventoryClickEvent implements Listener {
             throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         if (event.getInventory().getHolder() instanceof MenuHolder holder && event.getCurrentItem() != null) {
             Pair<CustomStack, String> data = this.plugin.toCustomStack(event.getCurrentItem());
-            if (data == null) return;
+
+            if (data == null) {
+                event.setCancelled(true);
+                return;
+            }
+
             RPGInventory.CustomStackType type = RPGInventory.CustomStackType.valueOf(data.getRight());
             type.interact(holder, event.getWhoClicked(), this.plugin, data.getLeft());
             event.setCancelled(true);
